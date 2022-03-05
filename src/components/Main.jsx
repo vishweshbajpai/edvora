@@ -1,5 +1,11 @@
 import { makeStyles } from "@mui/styles";
-import React, { useContext, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import RidesContext from "../store/rides-context";
 import Filter from "./Filter";
 import ListOfRides from "./ListOfRides";
@@ -33,16 +39,17 @@ const Main = () => {
     setRidesList(nearestRides);
   }, [nearestRides]);
 
-  const updateRidesList = (data) => {
+  const updateRidesList = useCallback((data) => {
+    // console.log("asfdasdf");
     setRidesList(data);
-  };
+  }, []);
 
   return (
     <>
       <div className={classes.root}>
         <div className={classes.top}>
           <Tabs updateRidesList={updateRidesList} />
-          <Filter />
+          <Filter ridesList={ridesList} updateRidesList={updateRidesList} />
         </div>
         <ListOfRides list={ridesList} />
       </div>

@@ -5,7 +5,7 @@ import RidesContext from "./store/rides-context";
 
 function App() {
   const ridesCxt = useContext(RidesContext);
-  const { userData, listData, updateListData, updateUserData } = ridesCxt;
+  const { updateListData, updateUserData } = ridesCxt;
 
   useEffect(() => {
     try {
@@ -32,10 +32,6 @@ function App() {
       console.log(error);
     }
   }, [updateListData, updateUserData]);
-
-  useEffect(() => {
-    console.log(userData, listData);
-  }, [userData, listData]);
 
   return <Layout />;
 }

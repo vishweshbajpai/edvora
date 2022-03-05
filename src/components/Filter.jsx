@@ -62,14 +62,21 @@ const useStyles = makeStyles({
     },
   },
 });
-const Filter = () => {
+
+let stateKey = 101;
+let cityKey = 1011;
+
+const Filter = ({ ridesList, updateRidesList }) => {
   const classes = useStyles();
   const { listData: list } = useContext(RidesContext);
   const [filterClicked, setFilterClicked] = useState(false);
   const [filterList, setFilterList] = useState();
   const [selectedState, setSelectedState] = useState();
   const [selectedCity, setSelectedCity] = useState();
+  const [stateList, setStateList] = useState();
+  const [cityList, setCityList] = useState();
 
+  const stateRef = useRef();
   const statesAndCitiesMap = useMemo(() => new Map(), []);
 
   const filterClickHandler = () => {
@@ -106,26 +113,86 @@ const Filter = () => {
     updateFilterList();
   }, [list, statesAndCitiesMap, updateFilterList]);
 
-  console.log(statesAndCitiesMap);
-  console.log(filterList);
+  //   console.log(statesAndCitiesMap);
+  //   console.log(filterList);
 
   useEffect(() => {
     updateMap();
   }, [list, updateMap]);
 
   const stateChangeHandler = (e) => {
+    console.log(e.target.value);
     setSelectedState(e.target.value);
   };
 
   const cityChangeHandler = (e) => {
+    console.log(e.target.value);
     setSelectedCity(e.target.value);
   };
 
+  const updateStateList = (data) => {
+    setStateList(data);
+  };
+
+  const updateCityList = (data) => {
+    setCityList(data);
+  };
+
+  const filterCityList = useCallback(
+    (state) => {
+      let node = filterList?.filter((item) => item.state === state);
+      if (node !== undefined && node.length > 0) {
+        let cities = node[0].cities;
+        updateCityList(cities);
+      }
+    },
+    [filterList]
+  );
+
+  // const filterRidesList = useCallback(
+  //   (state, city) => {
+  //     let calculatedList = [];
+  //     console.log(state, city);
+  //     if (state !== undefined) {
+  //       calculatedList = ridesList?.filter((item) => item.state === state);
+  //       console.log(calculatedList);
+  //       if (city !== undefined) {
+  //         calculatedList = calculatedList?.filter((item) =>
+  //           item.city.includes(city)
+  //         );
+  //         console.log(calculatedList);
+  //       }
+  //     }
+  //     // else if (city !== "") {
+  //     // }
+  //     if (calculatedList !== undefined && calculatedList.length > 0) {
+  //       console.log(calculatedList);
+  //       updateRidesList(calculatedList);
+  //     }
+  //   },
+  //   [ridesList, updateRidesList]
+  // );
+
   useEffect(() => {
-    if (selectedState !== "") {
+    if (selectedState !== "DEFAULT_STATE") {
       //logic aaasashahhhhhhhhhhhh
+      filterCityList(selectedState);
     }
-  }, [selectedState, selectedCity]);
+    // filterRidesList(selectedState, selectedCity);
+  }, [selectedState, filterCityList]);
+
+  useEffect(() => {
+    let newStateList = [];
+    let newCityList = [];
+    filterList?.forEach((obj) => {
+      newStateList = [...newStateList, obj.state];
+      obj.cities.forEach((item) => {
+        newCityList = [...newCityList, item];
+      });
+    });
+    updateStateList(newStateList);
+    updateCityList(newCityList);
+  }, [filterList]);
 
   return (
     <>
@@ -141,21 +208,26 @@ const Filter = () => {
         <div className={classes.filterTitle}>Filters</div>
         <div className={classes.bar}></div>
         <div className={classes.selectWrapper}>
-          <select onChange={stateChangeHandler}>
-            <option value="" disabled selected>
+          <select
+            ref={stateRef}
+            onChange={stateChangeHandler}
+            defaultValue="DEFAULT_STATE"
+          >
+            <option value="DEFAULT_STATE" disabled>
               State
             </option>
-            {filterList?.map((obj) => (
-              <option>{obj.state}</option>
+            {stateList?.map((state, index) => (
+              <option key={index}>{state}</option>
             ))}
           </select>
-          <select onChange={cityChangeHandler}>
-            <option value="" disabled selected>
+          <select onChange={cityChangeHandler} defaultValue="DEFAULT_CITY">
+            <option value="DEFAULT_CITY" disabled>
               City
             </option>
-            {filterList?.map((obj) =>
-              obj.cities.map((city) => <option>{city}</option>)
-            )}
+            {cityList?.length > 0 &&
+              cityList?.map((city, index) => (
+                <option key={index}>{city}</option>
+              ))}
           </select>
         </div>
       </div>
