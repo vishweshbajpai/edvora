@@ -1,5 +1,12 @@
 import { makeStyles } from "@mui/styles";
-import React, { useContext, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import FilterIcon from "../assets/FilterIcon";
 import RidesContext from "../store/rides-context";
 
@@ -60,57 +67,65 @@ const Filter = () => {
   const { listData: list } = useContext(RidesContext);
   const [filterClicked, setFilterClicked] = useState(false);
   const [filterList, setFilterList] = useState();
+  const [selectedState, setSelectedState] = useState();
+  const [selectedCity, setSelectedCity] = useState();
+
+  const statesAndCitiesMap = useMemo(() => new Map(), []);
+
   const filterClickHandler = () => {
     setFilterClicked((prev) => !prev);
   };
 
-  // const [states, setStates] = useState([]);
-  // const [cities, setCities] = useState([]);
+  const updateFilterList = useCallback(() => {
+    let calculatedList = [];
+    statesAndCitiesMap?.forEach((value, key) => {
+      let temp = [];
+      value.forEach((item) => {
+        temp.push(item);
+      });
 
-  // const updateCitiesAndStates = useCallback((statesList, citiesList) => {
-  //   states = statesList;
-  //   cities = citiesList;
-  //   console.log(states);
-  //   console.log(cities);
-  // }, []);
+      let node = { state: key, cities: temp };
+      calculatedList = [...calculatedList, node];
+    });
+    console.log(calculatedList);
+    setFilterList(calculatedList);
+  }, [statesAndCitiesMap]);
 
-  // const filterListHandler = useCallback(() => {
-  //   for (let obj in list) {
-  //     let flag = false;
-  //     let listState = list[obj].state;
-  //     let listCity = list[obj].city;
-  //     // if(filterList[listState]) {
-  //     //   filterList[listState].push(listCity);
-  //     // }
-  //     // else {
-  //     //   filterList[listState] = [listCity];
-  //     // }
+  const updateMap = useCallback(() => {
+    for (let i in list) {
+      let item = list[i];
+      if (statesAndCitiesMap.has(item.state)) {
+        statesAndCitiesMap.set(
+          item.state,
+          new Set([...statesAndCitiesMap.get(item.state), item.city])
+        );
+      } else {
+        statesAndCitiesMap.set(item.state, new Set([item.city]));
+      }
+    }
+    updateFilterList();
+  }, [list, statesAndCitiesMap, updateFilterList]);
 
-  //     for (let i in filterList) {
-  //       // let filterListState = filterList[i].state;
-  //       // let listState =
-  //       if (
-  //         filterList[i].state === list[obj].state &&
-  //         !filterList[i].city.includes(list[obj].city)
-  //       ) {
-  //         filterList[i].city.push(list[obj].city);
-  //         flag = true;
-  //         break;
-  //       }
-  //     }
-  //     let node = { state: list[obj].state, city: [list[obj].city] };
-  //     if (filterList === undefined) {
-  //       setFilterList([node]);
-  //     }
-  //     if (!flag && filterList !== undefined) {
-  //       setFilterList((prev) => [...prev, node]);
-  //     }
-  //   }
-  // }, [list, filterList]);
+  console.log(statesAndCitiesMap);
+  console.log(filterList);
 
-  // useEffect(() => {
-  //   filterListHandler();
-  // }, [list, filterListHandler]);
+  useEffect(() => {
+    updateMap();
+  }, [list, updateMap]);
+
+  const stateChangeHandler = (e) => {
+    setSelectedState(e.target.value);
+  };
+
+  const cityChangeHandler = (e) => {
+    setSelectedCity(e.target.value);
+  };
+
+  useEffect(() => {
+    if (selectedState !== "") {
+      //logic aaasashahhhhhhhhhhhh
+    }
+  }, [selectedState, selectedCity]);
 
   return (
     <>
@@ -126,7 +141,7 @@ const Filter = () => {
         <div className={classes.filterTitle}>Filters</div>
         <div className={classes.bar}></div>
         <div className={classes.selectWrapper}>
-          <select>
+          <select onChange={stateChangeHandler}>
             <option value="" disabled selected>
               State
             </option>
@@ -134,12 +149,12 @@ const Filter = () => {
               <option>{obj.state}</option>
             ))}
           </select>
-          <select>
+          <select onChange={cityChangeHandler}>
             <option value="" disabled selected>
               City
             </option>
             {filterList?.map((obj) =>
-              obj.city.map((city) => <option>{city}</option>)
+              obj.cities.map((city) => <option>{city}</option>)
             )}
           </select>
         </div>
